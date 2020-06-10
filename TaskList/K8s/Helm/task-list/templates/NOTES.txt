@@ -1,1 +1,0 @@
-Enjoy the release {{ .Release.Name }} of the coolest task list app.
