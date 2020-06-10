@@ -13,7 +13,7 @@ spec:
         app: tasks-app
     spec:
       containers:
-      - image: hossambarakat/tasklist
+      - image: hossambarakat/tasklist-postgres
         imagePullPolicy: IfNotPresent
         name: tasks-app
         ports:

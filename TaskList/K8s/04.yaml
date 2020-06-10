@@ -13,7 +13,7 @@ spec:
         app: tasks-app
     spec:
       containers:
-      - image: hossambarakat/tasklist
+      - image: hossambarakat/tasklist-postgres
         imagePullPolicy: IfNotPresent
         name: tasks-app
         ports:
@@ -21,7 +21,7 @@ spec:
           name: tasks-app
         env:
         - name: ConnectionStrings__DefaultConnection
-          value: "Server=mssql-service;Database=Tasks;uid=sa;pwd=P@ssw0rd;MultipleActiveResultSets=true"
+          value: "host=tasklist-db-service;database=tasks;password=P@ssw0rd;username=postgres"
 ---
 kind: Service
 apiVersion: v1
@@ -38,41 +38,41 @@ spec:
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: mssql-deployment
+  name: tasklist-db-deployment
 spec:
   replicas: 1
   selector:
       matchLabels:
-        app: mssql
+        app: tasklist-db
   template:
     metadata:
       labels:
-        app: mssql
+        app: tasklist-db
     spec:
       terminationGracePeriodSeconds: 10
       containers:
-      - name: mssql
-        image: mcr.microsoft.com/mssql/server:2017-latest
+      - name: tasklist-db
+        image: postgres
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 1433
+        - containerPort: 5432
         env:
         - name: ACCEPT_EULA
           value: "Y"
-        - name: SA_PASSWORD
+        - name: POSTGRES_PASSWORD
           value: "P@ssw0rd"
-        - name: MSSQL_PID
-          value: "Express"
+        - name: POSTGRES_DB
+          value: "tasks"
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name: mssql-service
+  name: tasklist-db-service
 spec:
   selector:
-    app: mssql
+    app: tasklist-db
   ports:
     - protocol: TCP
-      port: 1433
-      targetPort: 1433
+      port: 5432
+      targetPort: 5432
   type: LoadBalancer

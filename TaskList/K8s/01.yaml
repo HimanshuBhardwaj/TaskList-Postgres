@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
   - name: tasks-app
-    image: hossambarakat/tasklist
+    image: hossambarakat/tasklist-postgres
     imagePullPolicy: IfNotPresent
     ports:
       - containerPort: 80
