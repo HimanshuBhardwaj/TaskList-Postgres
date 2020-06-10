@@ -1,49 +1,71 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Marten;
+using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using TaskList.Data;
+using TaskList.Domain;
 
 namespace TaskList.Controllers
 {
     public class TasksController : Controller
     {
-        private readonly TasksContext _tasksContext;
+        private readonly IDocumentStore _documentStore;
 
-        public TasksController(TasksContext tasksContext)
+        public TasksController(IDocumentStore documentStore)
         {
-            _tasksContext = tasksContext;
+            _documentStore = documentStore;
         }
         public IActionResult Index()
         {
-            return View(_tasksContext.Tasks.ToList());
+            List<Task> tasks;
+            using (var session = _documentStore.LightweightSession())
+            {
+                tasks = session.Query<Task>().ToList();
+            }
+            return View(tasks);
         }
-        public IActionResult Create(Domain.Task task)
+        public IActionResult Create(Task task)
         {
             task.AddedOn = DateTime.UtcNow;
-            _tasksContext.Tasks.Add(task);
-            _tasksContext.SaveChanges();
+
+            using (var session = _documentStore.LightweightSession())
+            {
+                session.Store(task);
+                session.SaveChanges();
+            }
             return RedirectToAction("Index");
         }
 
         public IActionResult Delete(int id)
         {
-            var task = _tasksContext.Tasks.Find(id);
-            _tasksContext.Tasks.Remove(task);
-            _tasksContext.SaveChanges();
+            using (var session = _documentStore.LightweightSession())
+            {
+                session.Delete<Task>(id);
+                session.SaveChanges();
+            }
+
             return RedirectToAction("Index");
         }
         public IActionResult MarkAsComplete(int id)
         {
-            var task = _tasksContext.Tasks.Find(id);
-            task.MarkAsComplete();
-            _tasksContext.SaveChanges();
+            using (var session = _documentStore.LightweightSession())
+            {
+                var task = session.Load<Task>(id);
+                task.MarkAsComplete();
+                session.Store(task);
+                session.SaveChanges();
+            }
             return RedirectToAction("Index");
         }
         public IActionResult MarkAsIncomplete(int id)
         {
-            var task = _tasksContext.Tasks.Find(id);
-            task.MarkAsIncomplete();
-            _tasksContext.SaveChanges();
+            using (var session = _documentStore.LightweightSession())
+            {
+                var task = session.Load<Task>(id);
+                task.MarkAsIncomplete();
+                session.Store(task);
+                session.SaveChanges();
+            }
             return RedirectToAction("Index");
         }
     }

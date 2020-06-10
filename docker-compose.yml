@@ -9,12 +9,14 @@ services:
     depends_on: 
       - tasklist-db
     environment:
-      - ConnectionStrings__DefaultConnection=Server=tasklist-db;Database=Tasks;uid=sa;pwd=P@ssw0rd;MultipleActiveResultSets=true
+      - ConnectionStrings__DefaultConnection=host=tasklist-db;database=tasks;password=P@ssw0rd;username=postgres
 
   tasklist-db:
-    image: microsoft/mssql-server-linux
+    image: postgres
+    restart: always
     ports:
-      - "1433:1433"
+      - "5432:5432"
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=P@ssw0rd
+      - POSTGRES_PASSWORD=P@ssw0rd
+      - POSTGRES_DB=tasks
